@@ -7,7 +7,7 @@ test( "tokenize1", function() {
 });
 
 test( "tokenize2", function() {
-    ok( tokenize("print \"hello world\""), "print \"hello world\"");
+    ok( makeTreeFromTokens(tokenize("print \"hello world\"")), "print \"hello world\"");
 });
 
 test( "tokenize3", function() {
@@ -16,4 +16,8 @@ test( "tokenize3", function() {
 
 test( "tokenize3", function() {
     ok( tokenize("testvar=1"), "testvar=1");
+});
+
+test( "tokenize3", function() {
+    ok( makeTreeFromTokens(tokenize("testvar=1")), "testvar=1");
 });
