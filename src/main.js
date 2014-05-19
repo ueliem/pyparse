@@ -29,16 +29,38 @@ function tokenize(code) {
                 }
                 else if (code[i] == "\"") {
                     //console.log(current_token);
-                    if (current_token != "") {
+                    if (current_token !== "") {
                         tokens.push(current_token);
                     }
                     current_token = "";
                     current_token += code[i];
+                    // console.log(current_token);
+                    // if (current_token !== "") {
+                    //     tokens.push(current_token);
+                    // }
+                    // current_token = "";
+                    current_state = statesEnum.STRINGSTATE;
+                }
+                else {
+                    current_token += code[i];
+                }
+            }
+        }
+        else if (current_state == statesEnum.STRINGSTATE) {
+            if (special_characters.indexOf(code[i]) == -1) {
+                if (code[i] == "\"") {
                     //console.log(current_token);
-                    if (current_token != "") {
+                    current_token += code[i];
+                    if (current_token !== "") {
                         tokens.push(current_token);
                     }
                     current_token = "";
+                    //console.log(current_token);
+                    if (current_token !== "") {
+                        tokens.push(current_token);
+                    }
+                    current_token = "";
+                    current_state = statesEnum.STARTSTATE;
                 }
                 else {
                     current_token += code[i];
@@ -48,7 +70,7 @@ function tokenize(code) {
     }
     //console.log(current_token);
     //Push the final token
-    if(current_token != "") {
+    if(current_token !== "") {
         tokens.push(current_token);
     }
     current_token = "";
