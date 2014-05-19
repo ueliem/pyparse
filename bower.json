@@ -1,0 +1,17 @@
+{
+  "name": "pyparse",
+  "version": "0.0.1",
+  "description": "an example package",
+  "main": [
+     "script.js"
+  ],
+  "homepage": "https://github.com/User/myproject",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "name": "pyparse",
+  "version": "0.0.0",
+  "main": "web.js",
+  "private": true,
+  "author": {
+    "name": "Will Long",
+    "email": "will.long043@gmail.com",
+    "url": "linkedin.com/in/ueliem"
+  },
+  "repository": {
+    "type": "git",
+    "url": "none"
+  },
+  "files": [
+    "lib"
+  ],
+  "keywords": [],
+  "devDependencies": {
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-contrib-nodeunit": "^0.3.3",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-contrib-uglify": "*",
+    "grunt-contrib-qunit": "*",
+    "grunt-contrib-concat": "*",
+    "load-grunt-tasks": "^0.4.0",
+    "time-grunt": "^0.3.1",
+    "jshint-stylish": "^0.2.0"
+  },
+  "scripts": {
+    "test": "grunt"
+  }
+}
