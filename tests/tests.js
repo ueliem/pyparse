@@ -13,3 +13,7 @@ test( "tokenize2", function() {
 test( "tokenize3", function() {
     ok( tokenize("testvar = 1"), "testvar = 1");
 });
+
+test( "tokenize3", function() {
+    ok( tokenize("testvar=1"), "testvar=1");
+});
