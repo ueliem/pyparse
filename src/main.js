@@ -1,6 +1,6 @@
 var reserved_words = ["",];
 var text_characters;
-var special_characters = ["{", "}", "(", ")", ".", ",", "="];
+var special_characters = ["{", "}", "(", ")", ".", ",", "=", ":", ";"];
 
 statesEnum = Object.freeze({
     STARTSTATE : 0,
@@ -24,7 +24,9 @@ function tokenize(code) {
             if (special_characters.indexOf(code[i]) == -1) {
                 if (code[i] == " ") {
                     //console.log(current_token);
-                    tokens.push(current_token);
+                    if (current_token !== "") {
+                        tokens.push(current_token);
+                    }
                     current_token = "";
                 }
                 else if (code[i] == "\"") {
@@ -44,6 +46,17 @@ function tokenize(code) {
                 else {
                     current_token += code[i];
                 }
+            }
+            else {
+                if (current_token !== "") {
+                    tokens.push(current_token);
+                }
+                current_token = "";
+                current_token += code[i];
+                if (current_token !== "") {
+                    tokens.push(current_token);
+                }
+                current_token = "";
             }
         }
         else if (current_state == statesEnum.STRINGSTATE) {

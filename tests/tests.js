@@ -9,3 +9,7 @@ test( "tokenize1", function() {
 test( "tokenize2", function() {
     ok( tokenize("print \"hello world\""), "print \"hello world\"");
 });
+
+test( "tokenize3", function() {
+    ok( tokenize("testvar = 1"), "testvar = 1");
+});
