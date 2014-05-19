@@ -2,7 +2,7 @@
 
 var reserved_words = ["",];
 var text_characters;
-var special_characters = ["{", "}", "(", ")", ".", ",", "=", ":", ";"];
+var special_characters = ["{", "}", "(", ")", ".", ",", "=", ":", ";", "@", "%"];
 
 statesEnum = Object.freeze({
     STARTSTATE : 0,
@@ -17,13 +17,21 @@ var current_state;
 function tokenize(code) {
     var tokens = [];
     var current_token = "";
+    var col_start = 0;
+    var row_start = 0;
+    var col_end = 0;
+    var row_end = 0;
     current_state = statesEnum.STARTSTATE;
     var start_of_token, end_of_token = 0;
 
     function pushToken(token) {
         if(token !== "") {
-            tokens.push(token);
+            tokens.push(new Token(token, row_start, col_start, row_end, col_end));
             current_token = "";
+            col_start = 0;
+            token_start = 0;
+            col_end = 0;
+            token_end = 0;
         }
     }
 
@@ -32,23 +40,21 @@ function tokenize(code) {
         if (current_state == statesEnum.STARTSTATE) {
             if (special_characters.indexOf(code[i]) == -1) {
                 if (code[i] == " ") {
-                    //console.log(current_token);
                     pushToken(current_token);
                 }
                 else if (code[i] == "\"") {
-                    //console.log(current_token);
                     pushToken(current_token);
                     current_token += code[i];
-                    // console.log(current_token);
-                    // if (current_token !== "") {
-                    //     tokens.push(current_token);
-                    // }
-                    // current_token = "";
                     current_state = statesEnum.STRINGSTATE;
                 }
                 else {
                     current_token += code[i];
                 }
+            }
+            else if (code[i] == "\n") {//TODO: Allow for statements to wrap multiple lines
+                pushToken(current_token);
+                current_token += code[i];
+                pushToken(current_token);
             }
             else {
                 pushToken(current_token);
@@ -59,11 +65,9 @@ function tokenize(code) {
         else if (current_state == statesEnum.STRINGSTATE) {
             if (special_characters.indexOf(code[i]) == -1) {
                 if (code[i] == "\"") {
-                    //console.log(current_token);
                     current_token += code[i];
                     pushToken(current_token);
-                    //console.log(current_token);
-                    pushToken(current_token);
+                    //pushToken(current_token);
                     current_state = statesEnum.STARTSTATE;
                 }
                 else {
@@ -72,10 +76,9 @@ function tokenize(code) {
             }
         }
     }
-    //console.log(current_token);
     //Push the final token
     pushToken(current_token);
 
-    console.log(tokens);
+    //console.log(tokens);
     return tokens;
 }
