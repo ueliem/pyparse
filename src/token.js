@@ -58,6 +58,7 @@ tokenTypesEnum = Object.freeze({
 
 function Token(value, type, startline, startcol, endline, endcol) {
     this.value = value;
+    this.type = type;
     this.startline = startline;
     this.startcol = startcol;
     this.endline = endline;
