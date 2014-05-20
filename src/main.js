@@ -11,7 +11,8 @@ var followed_by_equals = ["=", "!", "%", "*", "/", "+", "-", "<", ">"];
 statesEnum = Object.freeze({
     STARTSTATE : 0,
     EQUALSSTATE : 1,
-    STRINGSTATE : 2
+    STRINGSTATE : 2,
+    LINECOMMSTATE : 3
 });
 
 //This function will split a string of python code into tokens
@@ -69,6 +70,10 @@ function tokenize(code) {
                     current_token += code[i];
                     current_state = statesEnum.EQUALSSTATE;
                 }
+                else if (code[i] == "#") {
+                    pushToken(current_token);
+                    current_state = statesEnum.LINECOMMSTATE;
+                }
                 else {
                     current_token += code[i];
                 }
@@ -104,6 +109,14 @@ function tokenize(code) {
                 else {
                     current_token += code[i];
                 }
+            }
+        }
+        else if (current_state == statesEnum.LINECOMMSTATE) {
+            if(code[i] == "\n") {
+                current_state = statesEnum.STARTSTATE;
+            }
+            else {
+                //Do nothing, its a comment.
             }
         }
     }
