@@ -5,14 +5,16 @@ var python_keywords = ['and', 'as', 'assert', 'break', 'class', 'continue',
     'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'not',
     'or', 'pass', 'print', 'raise', 'return', 'try', 'while', 'with', 'yield'];
 var text_characters;
-var special_characters = ["{", "}", "(", ")", ".", ",", ":", ";", "@"];
+var special_characters = ["{", "}", "(", ")", ".", ",", ":", ";", "@", "`"];
 var followed_by_equals = ["=", "!", "%", "*", "/", "+", "-", "<", ">"];
+var digits = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
 statesEnum = Object.freeze({
     STARTSTATE : 0,
     EQUALSSTATE : 1,
     STRINGSTATE : 2,
-    LINECOMMSTATE : 3
+    LINECOMMSTATE : 3,
+    INTSTATE : 4
 });
 
 //This function will split a string of python code into tokens
@@ -32,7 +34,7 @@ function tokenize(code) {
 
     function pushToken(token) {
         if(token !== "") {
-            tokens.push(new Token(token, row_start, col_start, row_end, col_end));
+            tokens.push(new Token(token, recognize_token_type(token), row_start, col_start, row_end, col_end));
             current_token = "";
             col_start = 0;
             token_start = 0;
@@ -40,6 +42,18 @@ function tokenize(code) {
             token_end = 0;
         }
     }
+    function pushTokenWithType(token, type) {
+        if(token !== "") {
+            tokens.push(new Token(token, type, row_start, col_start, row_end, col_end));
+            current_token = "";
+            col_start = 0;
+            token_start = 0;
+            col_end = 0;
+            token_end = 0;
+        }
+    }
+
+
 
     //Iterate through the inputted code character by character
     for (var i = 0, len = code.length; i < len; i++) {
@@ -76,10 +90,15 @@ function tokenize(code) {
                     current_state = statesEnum.STARTSTATE;
                 }
                 else if (followed_by_equals.indexOf(code[i]) != -1) {
-                    console.log("EQUALS");
                     pushToken(current_token);
                     current_token += code[i];
                     current_state = statesEnum.EQUALSSTATE;
+                }
+                else if (digits.indexOf(code[i]) != -1) {
+                    console.log("DIGIT");
+                    pushToken(current_token);
+                    current_token += code[i];
+                    current_state = statesEnum.INTSTATE;
                 }
                 else if (code[i] == "#") {
                     pushToken(current_token);
@@ -96,34 +115,67 @@ function tokenize(code) {
             }
         }
         else if (current_state == statesEnum.EQUALSSTATE) {
-            if(code[i] == "=") {
-                current_token += code[i];
-                pushToken(current_token);
-                current_state = statesEnum.MIDSTATE;
+            if(followed_by_equals.indexOf(code[i]) != -1) {
+                if(code[i] == "=") {
+                    current_token += code[i];
+                    pushToken(current_token);
+                    current_state = statesEnum.MIDSTATE;
+                }
+                else if(current_token == "-" && digits.indexOf(code[i]) != -1) {
+                    current_token += code[i];
+                    current_state = statesEnum.INTSTATE;
+                }
+                else {
+                    current_token += code[i];
+                    //pushToken(current_token);
+                    //current_state = statesEnum.MIDSTATE;
+                }
             }
             else {
                 pushToken(current_token);
                 if (code[i] != " ") {
-                    current_token += code[i];
+                    if(digits.indexOf(code[i]) != -1) {
+                        console.log("HAPPENING");
+                        current_token += code[i];
+                        current_state = statesEnum.INTSTATE;
+                    }
+                    else if(code[i] == "\"") {
+                        current_state = statesEnum.STRINGSTATE;
+                    }
                 }
-                current_state = statesEnum.MIDSTATE;
+                else {
+                    current_state = statesEnum.MIDSTATE;
+                }
             }
         }
         else if (current_state == statesEnum.STRINGSTATE) {
-            if (special_characters.indexOf(code[i]) == -1) {
+            //if (special_characters.indexOf(code[i]) == -1) {
                 if (code[i] == "\"") {
                     //current_token += code[i];
-                    pushToken(current_token);
+                    pushTokenWithType(current_token, tokenTypesEnum.STRING);
                     //pushToken(current_token);
                     current_state = statesEnum.MIDSTATE;
                 }
                 else {
                     current_token += code[i];
                 }
+            //}
+        }
+        else if (current_state == statesEnum.INTSTATE) {
+            if (digits.indexOf(code[i]) == -1) {
+                pushTokenWithType(current_token, tokenTypesEnum.NUMBER);
+                if(code[i] == "\n") {
+                    pushTokenWithType(code[i], tokenTypesEnum.NEWLINE);
+                }
+                current_state = statesEnum.MIDSTATE;
+            }
+            else {
+                current_token += code[i];
             }
         }
         else if (current_state == statesEnum.LINECOMMSTATE) {
             if(code[i] == "\n") {
+                pushTokenWithType(code[i], tokenTypesEnum.NEWLINE);
                 current_state = statesEnum.MIDSTATE;
             }
             else {
@@ -132,8 +184,134 @@ function tokenize(code) {
         }
     }
     //Push the final token
-    pushToken(current_token);
+    switch (current_state) {
+        case statesEnum.STARTSTATE:
+            //Probably should not happen
+            break;
+        case statesEnum.EQUALSSTATE:
+            pushToken(current_token);
+            break;
+        case statesEnum.STRINGSTATE:
+            pushTokenWithType(current_token, tokenTypesEnum.STRING);
+            break;
+        case statesEnum.LINECOMMSTATE:
+            //Shouldn't need anything
+            break;
+        case statesEnum.INTSTATE:
+            pushTokenWithType(current_token, tokenTypesEnum.NUMBER);
+            break;
+        default:
+            pushToken(current_token);
+            break;
+    }
+    //pushToken(current_token);
 
     console.log("DONE");
     return tokens;
+}
+
+function recognize_token_type(token) {
+    switch (token) {
+        //token.ENDMARKER
+        //token.NAME
+        //token.NUMBER
+        //token.STRING¶
+        case "\n":
+            return tokenTypesEnum.NEWLINE;
+        case "\t":
+            return tokenTypesEnum.INDENT;
+        //token.DEDENT¶
+        case "(":
+            return tokenTypesEnum.LPAR;
+        case ")":
+            return tokenTypesEnum.RPAR;
+        case "[":
+            return tokenTypesEnum.LSQB;
+        case "]":
+            return tokenTypesEnum.RSQB;
+        case ":":
+            return tokenTypesEnum.COLON;
+        case ",":
+            return tokenTypesEnum.COMMA;
+        case ";":
+            return tokenTypesEnum.SEMI;
+        case "+":
+            return tokenTypesEnum.PLUS;
+        case "-":
+            return tokenTypesEnum.MINUS;
+        case "*":
+            return tokenTypesEnum.STAR;
+        case "|":
+            return tokenTypesEnum.VBAR;
+        case "&":
+            return tokenTypesEnum.AMPER;
+        case "<":
+            return tokenTypesEnum.LESS;
+        case ">":
+            return tokenTypesEnum.GREATER;
+        case "=":
+            return tokenTypesEnum.EQUAL;
+        case ".":
+            return tokenTypesEnum.DOT;
+        case "%":
+            return tokenTypesEnum.PERCENT;
+        case "`":
+            return tokenTypesEnum.BACKQUOTE;
+        case "{":
+            return tokenTypesEnum.LBRACE;
+        case "}":
+            return tokenTypesEnum.RBRACE;
+        case "==":
+            return tokenTypesEnum.EQEQUAL;
+        case "!=":
+            return tokenTypesEnum.NOTEQUAL;
+        case "<=":
+            return tokenTypesEnum.LESSEQUAL;
+        case ">=":
+            return tokenTypesEnum.GREATEREQUAL;
+        case "~":
+            return tokenTypesEnum.TILDE;
+        case "^":
+            return tokenTypesEnum.CIRCUMFLEX;
+        case "<<":
+            return tokenTypesEnum.LEFTSHIFT;
+        case ">>":
+            return tokenTypesEnum.RIGHTSHIFT;
+        case "**":
+            return tokenTypesEnum.DOUBLESTAR;
+        case "+=":
+            return tokenTypesEnum.PLUSEQUAL;
+        case "-=":
+            return tokenTypesEnum.MINEQUAL;
+        case "*=":
+            return tokenTypesEnum.STAREQUAL;
+        case "/=":
+            return tokenTypesEnum.SLASHEQUAL;
+        case "%=":
+            return tokenTypesEnum.PERCENTEQUAL;
+        case "&=":
+            return tokenTypesEnum.AMPEREQUAL;
+        case "|=":
+            return tokenTypesEnum.VBAREQUAL;
+        case "^=":
+            return tokenTypesEnum.CIRCUMFLEXEQUAL;
+        case "<<=":
+            return tokenTypesEnum.LEFTSHIFTEQUAL;
+        case ">>=":
+            return tokenTypesEnum.RIGHTSHIFTEQUAL;
+        case "**=":
+            return tokenTypesEnum.DOUBLESTAREQUAL;
+        case "//":
+            return tokenTypesEnum.DOUBLESLASH;
+        case "//=":
+            return tokenTypesEnum.DOUBLESLASHEQUAL;
+
+        //token.AT
+        //token.OP
+        //token.ERRORTOKEN
+        //token.N_TOKENS
+        //token.NT_OFFSET
+        default:
+            return null;
+    }
 }

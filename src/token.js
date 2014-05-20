@@ -65,6 +65,13 @@ function Token(value, type, startline, startcol, endline, endcol) {
     this.endcol = endcol;
 }
 
+Token.prototype.isTerminal = function isTerminal() {
+    if([tokenTypesEnum.NUMBER, tokenTypesEnum.STRING].indexOf(this.type) != -1) {
+        return true;
+    }
+    return false;
+};
+
 Token.prototype.toString = function tokenToString() {
     return this.value.toString();
 };
