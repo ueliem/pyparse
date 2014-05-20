@@ -1,28 +1,33 @@
 //TODO: Add tokenize strings based on multiple quotes.
 
-var reserved_words = ["",];
+var python_keywords = ['and', 'as', 'assert', 'break', 'class', 'continue',
+    'def', 'del', 'elif', 'else', 'except', 'exec', 'finally', 'for',
+    'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'not',
+    'or', 'pass', 'print', 'raise', 'return', 'try', 'while', 'with', 'yield'];
 var text_characters;
-var special_characters = ["{", "}", "(", ")", ".", ",", "=", ":", ";", "@", "%"];
+var special_characters = ["{", "}", "(", ")", ".", ",", ":", ";", "@"];
+var followed_by_equals = ["=", "!", "%", "*", "/", "+", "-", "<", ">"];
 
 statesEnum = Object.freeze({
     STARTSTATE : 0,
-    OUTERSTATE : 1,
+    EQUALSSTATE : 1,
     STRINGSTATE : 2
 });
 
-var indent_count = 0;
-var current_state;
-
 //This function will split a string of python code into tokens
 function tokenize(code) {
+    var indent_count = 0;
+    var current_state;
     var tokens = [];
     var current_token = "";
     var col_start = 0;
     var row_start = 0;
     var col_end = 0;
     var row_end = 0;
+    var token_type;
     current_state = statesEnum.STARTSTATE;
     var start_of_token, end_of_token = 0;
+    var indent_depth;
 
     function pushToken(token) {
         if(token !== "") {
@@ -44,17 +49,29 @@ function tokenize(code) {
                 }
                 else if (code[i] == "\"") {
                     pushToken(current_token);
-                    current_token += code[i];
+                    //current_token += code[i];
                     current_state = statesEnum.STRINGSTATE;
+                }
+                else if (code[i] == "\t") {
+                    pushToken(current_token);
+                    current_token += code[i];
+                    pushToken(current_token);
+                    indent_depth++;
+                }
+                else if (code[i] == "\n") {//TODO: Allow for statements to wrap multiple lines
+                    pushToken(current_token);
+                    current_token += code[i];
+                    pushToken(current_token);
+                }
+                else if (followed_by_equals.indexOf(code[i]) != -1) {
+                    console.log("EQUALS");
+                    pushToken(current_token);
+                    current_token += code[i];
+                    current_state = statesEnum.EQUALSSTATE;
                 }
                 else {
                     current_token += code[i];
                 }
-            }
-            else if (code[i] == "\n") {//TODO: Allow for statements to wrap multiple lines
-                pushToken(current_token);
-                current_token += code[i];
-                pushToken(current_token);
             }
             else {
                 pushToken(current_token);
@@ -62,10 +79,24 @@ function tokenize(code) {
                 pushToken(current_token);
             }
         }
+        else if (current_state == statesEnum.EQUALSSTATE) {
+            if(code[i] == "=") {
+                current_token += code[i];
+                pushToken(current_token);
+                current_state = statesEnum.STARTSTATE;
+            }
+            else {
+                pushToken(current_token);
+                if (code[i] != " ") {
+                    current_token += code[i];
+                }
+                current_state = statesEnum.STARTSTATE;
+            }
+        }
         else if (current_state == statesEnum.STRINGSTATE) {
             if (special_characters.indexOf(code[i]) == -1) {
                 if (code[i] == "\"") {
-                    current_token += code[i];
+                    //current_token += code[i];
                     pushToken(current_token);
                     //pushToken(current_token);
                     current_state = statesEnum.STARTSTATE;
@@ -79,6 +110,6 @@ function tokenize(code) {
     //Push the final token
     pushToken(current_token);
 
-    //console.log(tokens);
+    console.log("DONE");
     return tokens;
 }
