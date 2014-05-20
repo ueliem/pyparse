@@ -33,3 +33,7 @@ test( "tokenize7", function() {
 test( "tokenize8", function() {
     ok( makeTreeFromTokens(tokenize("if testvar<<=1\n")), "if testvar==1");
 });
+
+test( "tokenize9", function() {
+    ok( makeTreeFromTokens(tokenize("print "hello world\n")), "print "hello world\n");
+});

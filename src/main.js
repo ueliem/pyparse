@@ -215,7 +215,7 @@ function recognize_token_type(token) {
         //token.ENDMARKER
         //token.NAME
         //token.NUMBER
-        //token.STRING¶
+        //token.STRING
         case "\n":
             return tokenTypesEnum.NEWLINE;
         case "\t":
@@ -312,6 +312,12 @@ function recognize_token_type(token) {
         //token.N_TOKENS
         //token.NT_OFFSET
         default:
+            if (python_keywords.indexOf(token) != -1) {
+                //IS A KEYWORD
+            }
+            else {//Either a name, or malformed
+                return tokenTypesEnum.NAME;//Assume name, for now
+            }
             return null;
     }
 }
