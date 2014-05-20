@@ -17,7 +17,6 @@ statesEnum = Object.freeze({
 
 //This function will split a string of python code into tokens
 function tokenize(code) {
-    var indent_count = 0;
     var current_state;
     var tokens = [];
     var current_token = "";
@@ -28,7 +27,8 @@ function tokenize(code) {
     var token_type;
     current_state = statesEnum.STARTSTATE;
     var start_of_token, end_of_token = 0;
-    var indent_depth;
+    var indent_depth_current;
+    var indent_depth_previous;
 
     function pushToken(token) {
         if(token !== "") {
@@ -44,6 +44,17 @@ function tokenize(code) {
     //Iterate through the inputted code character by character
     for (var i = 0, len = code.length; i < len; i++) {
         if (current_state == statesEnum.STARTSTATE) {
+            if (code[i] == "\t") {
+                current_token += code[i];
+                pushToken(current_token);
+                indent_depth_current++;
+            }
+            else {//Something other than a tab or whitespace beginning a line
+                current_token += code[i];
+                current_state = statesEnum.MIDSTATE;
+            }
+        }
+        else if (current_state == statesEnum.MIDSTATE) {
             if (special_characters.indexOf(code[i]) == -1) {
                 if (code[i] == " ") {
                     pushToken(current_token);
@@ -57,12 +68,12 @@ function tokenize(code) {
                     pushToken(current_token);
                     current_token += code[i];
                     pushToken(current_token);
-                    indent_depth++;
                 }
                 else if (code[i] == "\n") {//TODO: Allow for statements to wrap multiple lines
                     pushToken(current_token);
                     current_token += code[i];
                     pushToken(current_token);
+                    current_state = statesEnum.STARTSTATE;
                 }
                 else if (followed_by_equals.indexOf(code[i]) != -1) {
                     console.log("EQUALS");
@@ -88,14 +99,14 @@ function tokenize(code) {
             if(code[i] == "=") {
                 current_token += code[i];
                 pushToken(current_token);
-                current_state = statesEnum.STARTSTATE;
+                current_state = statesEnum.MIDSTATE;
             }
             else {
                 pushToken(current_token);
                 if (code[i] != " ") {
                     current_token += code[i];
                 }
-                current_state = statesEnum.STARTSTATE;
+                current_state = statesEnum.MIDSTATE;
             }
         }
         else if (current_state == statesEnum.STRINGSTATE) {
@@ -104,7 +115,7 @@ function tokenize(code) {
                     //current_token += code[i];
                     pushToken(current_token);
                     //pushToken(current_token);
-                    current_state = statesEnum.STARTSTATE;
+                    current_state = statesEnum.MIDSTATE;
                 }
                 else {
                     current_token += code[i];
@@ -113,7 +124,7 @@ function tokenize(code) {
         }
         else if (current_state == statesEnum.LINECOMMSTATE) {
             if(code[i] == "\n") {
-                current_state = statesEnum.STARTSTATE;
+                current_state = statesEnum.MIDSTATE;
             }
             else {
                 //Do nothing, its a comment.
