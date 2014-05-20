@@ -63,6 +63,26 @@ function makeStatement(tokens, index) {
                                 "right": makeStatement(token[index+1], index+1),
                             }
                         }];
+            case tokenTypesEnum.STAR:
+                return [{
+                            "type": "ExpressionStatement",
+                            "expression": {
+                                "type": "BinaryExpression",
+                                "operator": "*",
+                                "left": makeStatement(token[index-1], index-1),
+                                "right": makeStatement(token[index+1], index+1),
+                            }
+                        }];
+            case tokenTypesEnum.SLASH:
+                return [{
+                            "type": "ExpressionStatement",
+                            "expression": {
+                                "type": "BinaryExpression",
+                                "operator": "/",
+                                "left": makeStatement(token[index-1], index-1),
+                                "right": makeStatement(token[index+1], index+1),
+                            }
+                        }];
         }
     }
 }
